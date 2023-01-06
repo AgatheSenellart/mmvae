@@ -345,4 +345,4 @@ def entropy(model, data, n = 20):
 
 def accuracy(logits, labels):
 
-    return torch.sum(labels == torch.argmax(logits, dim=1))
+    return torch.sum(labels == torch.argmax(logits, dim=-1))

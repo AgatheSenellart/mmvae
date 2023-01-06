@@ -578,3 +578,72 @@ class MEDMNIST_DL():
         val_dl = DataLoader(tensor_val, batch_size=batch_size, shuffle=False, **dlargs)
     
         return train_dl, test_dl, val_dl
+    
+
+from medmnist import ChestMNIST
+
+class MEDMNIST_2_DL():
+    
+    def __init__(self) -> None:
+        pass
+    
+    def transform_blood_labels(self,targets):
+        targets[targets == 1] = 0
+        targets[targets == 6] = 1
+        return targets.squeeze()
+    
+    def transform_chest_labels(self, targets):
+        targets = (np.sum(targets, axis=-1) > 0)
+        return 1*targets
+    
+    def getDataLoaders(self, batch_size, shuffle=True, device='cuda', transform=transforms.ToTensor(),dlargs={}):
+        
+        d1_train = ChestMNIST('train',transform=transform, target_transform = self.transform_chest_labels)
+        d1_test  = ChestMNIST('test' ,transform=transform, target_transform = self.transform_chest_labels)
+        d1_val   = ChestMNIST('val'  ,transform=transform, target_transform = self.transform_chest_labels)
+
+        d2_train = BloodMNIST('train', transform=transform, target_transform= self.transform_blood_labels)
+        d2_test = BloodMNIST('test'  , transform=transform, target_transform= self.transform_blood_labels)
+        d2_val = BloodMNIST('val'    , transform=transform, target_transform= self.transform_blood_labels)
+
+
+        
+        id1_train = torch.load('../data/train-med-chest-idx.pt')
+        id1_test   = torch.load('../data/test-med-chest-idx.pt')
+        id1_val     = torch.load('../data/val-med-chest-idx.pt')
+
+
+        id2_train = torch.load('../data/train-med-bloodchest-idx.pt')
+        id2_test =   torch.load('../data/test-med-bloodchest-idx.pt')
+        id2_val =     torch.load('../data/val-med-bloodchest-idx.pt')
+
+
+        
+        tensor_train = TensorDataset([
+            ResampleDataset(d1_train, lambda d,i : id1_train[i], size=len(id1_train)), 
+            ResampleDataset(d2_train, lambda d, i : id2_train[i], size=len(id2_train))
+        ])
+        
+        train_dl = DataLoader(tensor_train, batch_size=batch_size, shuffle=True, **dlargs)
+        
+        
+        
+        tensor_test = TensorDataset([
+            ResampleDataset(d1_test, lambda d,i : id1_test[i], size=len(id1_test)), 
+            ResampleDataset(d2_test, lambda d, i : id2_test[i], size=len(id2_test))
+        ])
+        
+        test_dl = DataLoader(tensor_test, batch_size=batch_size, shuffle=False, **dlargs)
+        
+        
+        
+        
+        
+        tensor_val = TensorDataset([
+            ResampleDataset(d1_val, lambda d,i : id1_val[i], size=len(id1_val)), 
+            ResampleDataset(d2_val, lambda d, i : id2_val[i], size=len(id1_val))
+        ])
+        
+        val_dl = DataLoader(tensor_val, batch_size=batch_size, shuffle=False, **dlargs)
+    
+        return train_dl, test_dl, val_dl
