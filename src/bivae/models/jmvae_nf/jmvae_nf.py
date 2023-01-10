@@ -10,6 +10,7 @@ from tqdm import tqdm
 from torch.autograd import grad
 import wandb
 from bivae.utils import (unpack_data)
+from scipy.special import logsumexp
 
 from ..multi_vaes import Multi_VAES
 
@@ -324,16 +325,78 @@ class JMVAE_NF(Multi_VAES):
             return lnqzs, g
         else:
             return lnqzs
+        
+        
+    def poe(self, mus_list, log_vars_list, divide_prior=True, eps=1e-3):
+        
+        mus = mus_list.copy()
+        log_vars=log_vars_list.copy()
+        
+        # Compute the joint posterior
+        lnT = torch.stack([-l for l in log_vars])  # Compute the inverse of variances
+        # print(lnT)
+        lnV = - torch.logsumexp(lnT, dim=0)  # variances of the product of expert
+        # print('lnV',lnV)
+        mus = torch.stack(mus)
+        joint_mu = (torch.exp(lnT) * mus).sum(dim=0) * torch.exp(lnV)
+        joint_std = torch.exp(0.5 * lnV)
+        
+        if divide_prior:
+            print(lnV.size())
+            diff_t = logsumexp(torch.stack([-lnV.cpu(), torch.zeros(lnV.size())]).numpy(),axis=0,b=np.stack([np.ones(lnV.shape), -np.ones(lnV.shape)]))
+            # T1,T2  = torch.exp(-lnV), torch.ones(lnV.size()).cuda()
+            # V = 1/(T1 - T2 + eps)
+            T = torch.exp(torch.Tensor(-diff_t).cuda())
+            joint_mu = T*(joint_mu*torch.exp(-lnV))
+            joint_std = torch.exp(-0.5*torch.Tensor(-diff_t).cuda())
+            print(torch.min(joint_std))
+        return joint_mu, joint_std
 
+    def sample_from_poe_subset(self, subset,data,K=1, divide_prior=True):
+        """ 
+        
+        Sample from the conditional using the product of experts. If we are not using normalizing flows, 
+        we compute the poe explicitly. Otherwise we use HMC sampling.
+        
 
-    def sample_from_poe_subset(self,subset,data, ax=None, mcmc_steps=100, n_lf=10, eps_lf=0.01, K=1, divide_prior=True):
+        Args:
+            subset (List[int]): the modality to condition on
+            data (List[Tensor]): the data to use for conditioning
+        """
+        
+        # First we need to compute the mus log vars for each of the encoding modalities
+        
+        if self.params.no_nf :
+            print("Using true PoE to sample from conditional")
+            mus = []
+            log_vars = []
+            for m in subset:
+                with torch.no_grad():
+                    o = self.vaes[m].encoder(data[m])
+                    mus.append(o.embedding)
+                    log_vars.append(o.log_covariance)
+                
+            # Compute the PoE
+            joint_mu, joint_log_var = self.poe(mus, log_vars)
+
+            # Sample from this distribution
+            qz_subset = dist.Normal(joint_mu, torch.exp(0.5*joint_log_var))
+            zs = qz_subset.sample([K]) # K x n_data x latent_dim
+            
+            # Decode in the target modality
+            return zs
+        else:
+            return self.sample_from_poe_subset_hmc(subset, data, K=1, divide_prior=True)
+    
+
+    def sample_from_poe_subset_hmc(self,subset,data, ax=None, mcmc_steps=100, n_lf=10, eps_lf=0.01, K=1, divide_prior=True):
         """Sample from the product of experts using Hamiltonian sampling.
 
         Args:
             subset (List[int]): 
             gen_mod (int): 
             data (List[Tensor]): 
-            K (int, optional): . Defaults to 100.
+            K (int, optional): . Defaults to 1.
         """
         print('starting to sample from poe_subset, divide prior = ', divide_prior)
         
