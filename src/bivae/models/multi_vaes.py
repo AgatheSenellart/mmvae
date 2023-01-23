@@ -19,7 +19,7 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score
 from bivae.utils import get_mean, kl_divergence, add_channels, adjust_shape, update_details
 from bivae.vis import tensors_to_df, plot_embeddings_colorbars, plot_samples_posteriors, plot_hist, save_samples
-from torchvision.utils import save_image
+from torchvision.utils import save_image, make_grid
 
 
 dist_dict = {'normal': dist.Normal, 'laplace': dist.Laplace, 'bernoulli' : dist.Bernoulli}
@@ -194,26 +194,30 @@ class Multi_VAES(nn.Module):
                         samples[i][j].append(vae.decoder(z)["reconstruction"])
         return samples
 
-    def sample_from_conditional(self, data, runPath, epoch, n=10):
+    def sample_from_conditional(self, data, runPath, epoch, n=10,return_res=False):
         bdata = [d[:8] for d in data]
+        n_data = len(bdata[0])
         self.eval()
         samples = self._sample_from_conditional(bdata, n)
-
+        res_list = [[None,None],[None,None]]
         for r, recon_list in enumerate(samples):
             for o, recon in enumerate(recon_list):
                 _data = bdata[r].cpu()
                 recon = torch.stack(recon)
                 _,_,ch,w,h = recon.shape
-                recon = recon.resize(n * 8, ch, w, h).cpu()
+                recon = recon.resize(n * n_data, ch, w, h).cpu()
                 if _data.shape[1:] != recon.shape[1:]:
                         _data, recon = adjust_shape(_data, recon) # modify the shapes in place to match dimensions
 
                 comp = torch.cat([_data, recon])
+
+                res_list[r][o] = make_grid(comp, nrow=len(bdata[0]))
                 filename = '{}/cond_samples_{}x{}_{:03d}.png'.format(runPath, r, o, epoch)
                 save_image(comp, filename)
                 wandb.log({'cond_samples_{}x{}.png'.format(r,o) : wandb.Image(filename)})
 
-
+        if return_res:
+            return res_list
 
 
     def compute_uni_ll_from_prior(self, data, mod, K=1000, batch_size_K = 100):
