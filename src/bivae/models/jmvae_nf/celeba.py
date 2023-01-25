@@ -70,6 +70,11 @@ class JMVAE_NF_CELEBA(JMVAE_NF):
         vae_config1 = vae_config(self.shape_mods[0], params.latent_dim)
         vae_config2 = vae_config(self.shape_mods[1], params.latent_dim)
 
+        if hasattr(params,'n_made_blocks'):
+            vae_config1.n_made_blocks = params.n_made_blocks
+            vae_config2.n_made_blocks = params.n_made_blocks
+            print(f'Using {params.n_made_blocks} in the flows')
+
         # # First load the DCCA encoders
         if params.dcca :
             print("Preparing DCCA encoders")
