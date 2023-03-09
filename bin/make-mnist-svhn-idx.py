@@ -1,5 +1,6 @@
 import torch
 from torchvision import datasets, transforms
+from pathlib import Path
 
 def rand_match_on_idx(l1, idx1, l2, idx2, max_d=10000, dm=10):
     """
@@ -20,6 +21,10 @@ def rand_match_on_idx(l1, idx1, l2, idx2, max_d=10000, dm=10):
 if __name__ == '__main__':
     max_d = 10000  # maximum number of datapoints per class
     dm = 5       # data multiplier: random permutations to match
+    
+    # It there is no '../data/' repository yet, make one
+    data_dir = Path('../data')
+    data_dir.mkdir(parents=True, exist_ok=True)   
 
     # get the individual datasets
     tx = transforms.ToTensor()

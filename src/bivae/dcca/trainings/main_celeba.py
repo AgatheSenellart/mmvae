@@ -59,7 +59,7 @@ class Solver():
             self.model.train()
 
             for dataT in tqdm(train_loader):
-                data = unpack_data(dataT)
+                data = unpack_data(dataT, device=self.device)
                 self.optimizer.zero_grad()
                 batch_x1 = data[0]
                 batch_x2 = data[1]
@@ -133,7 +133,7 @@ class Solver():
             labels = []
             for dataT in test_loader:
                 labels.append(dataT[0][1])
-                data = unpack_data(dataT)
+                data = unpack_data(dataT, device=self.device)
                 batch_x1 = data[0]
                 batch_x2 = data[1]
                 o1, o2 = self.model(batch_x1, batch_x2)
@@ -151,20 +151,11 @@ if __name__ == '__main__':
 
     print(torch.cuda.is_available())
 
-    parser = argparse.ArgumentParser(description='Multi-Modal VAEs')
-    parser.add_argument('--config-path', type=str, default='')
-
-
-    # args
-    info = parser.parse_args()
 
     ############
     # Parameters Section
-    with open(info.config_path, 'r') as fcc_file:
-        args = argparse.Namespace()
-        args.__dict__.update(json.load(fcc_file))
 
-    device = torch.device('cuda')
+    device = torch.device('cuda') if torch.cuda.is_available() else 'cpu'
     print("Using", torch.cuda.device_count(), "GPUs")
 
     # the path to save the models
@@ -172,14 +163,14 @@ if __name__ == '__main__':
     save_to.mkdir(parents=True, exist_ok=True)
 
     # the size of the new space learned by the model (number of the new features)
-    outdim_size = args.outdim_size_dcca
+    outdim_size = 40
 
 
     # the parameters for training the network
     learning_rate = 1e-3
-    epoch_num = args.num_epochs_dcca
+    epoch_num = 10
     batch_size = 800
-    train_loader,test_loader, val_loader = CELEBA_DL(args.data_path).getDataLoaders(batch_size=batch_size)
+    train_loader,test_loader, val_loader = CELEBA_DL('../data/').getDataLoaders(batch_size=batch_size,device=device)
 
 
     # the regularization parameter of the network
@@ -196,7 +187,7 @@ if __name__ == '__main__':
     # end of parameters section
     ############
     
-    wandb.init(project = 'DCCA_celeba', entity = 'asenellart', config = {'batch_size' : batch_size,
+    wandb.init(project = 'DCCA_celeba', anonymous="allow", config = {'batch_size' : batch_size,
                                                                             'learning_rate': learning_rate,
                                                                             'reg_par' : reg_par,
                                                                             'linear_cca' : linear_cca is not None,
@@ -204,9 +195,7 @@ if __name__ == '__main__':
                                                                             'num_epochs': epoch_num},
                    dir=str(save_to) + '/wandb')
     
-    # Save parameters of training
-    with open('{}/args.json'.format(save_to), 'w') as fp:
-        json.dump(args.__dict__, fp)
+
 
 
     # Building, training, and producing the new features by DCCA

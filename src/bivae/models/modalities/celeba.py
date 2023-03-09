@@ -45,7 +45,7 @@ def compute_accuracies(model, data, runPath, epoch, classes, n_data=100, ns=300,
 
     preds1 = model.classifiers[0](cross_samples[1].permute(1, 0, 2, 3, 4).resize(n_data * ns, *model.shape_mods[0]))  # 8*n x 10
     labels1 = (preds1 > 0).int().reshape(n_data, ns, 40)
-    classes_mul = torch.stack([classes[0][:n_data] for _ in range(ns)]).permute(1, 0,2).cuda()
+    classes_mul = torch.stack([classes[0][:n_data] for _ in range(ns)]).permute(1, 0,2).to(model.params.device)
     # print(classes_mul.shape)
 
     acc2 = torch.sum(classes_mul == labels2) / (n_data * ns*40)
@@ -75,12 +75,12 @@ def compute_fid_celeba(model, batch_size):
         # Get the data with suited transform
         tx = transforms.Compose([transforms.ToTensor(), transforms.Resize((299, 299)), add_channels()])
 
-        _, test,_ = model.getDataLoaders(batch_size,transform=tx)
+        _, test,_ = model.getDataLoaders(batch_size,transform=tx, device=model.params.device)
 
         ref_activations = []
 
         for dataT in test:
-            data = unpack_data(dataT)
+            data = unpack_data(dataT, device=model.params.device)
 
             ref_activations.append(model_fid(data[0]))
 
@@ -88,11 +88,11 @@ def compute_fid_celeba(model, batch_size):
 
         # Generate data from conditional
 
-        _, test,_ = model.getDataLoaders(batch_size)
+        _, test,_ = model.getDataLoaders(batch_size,device=model.params.device)
 
         gen_samples = []
         for dataT in test:
-            data=unpack_data(dataT)
+            data=unpack_data(dataT, device=model.params.device)
             gen = model._sample_from_conditional(data, n=1)[1][0]
 
 

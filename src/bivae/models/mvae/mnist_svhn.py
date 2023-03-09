@@ -12,7 +12,7 @@ from torchvision import transforms
 from bivae.analysis import (compute_accuracies, load_pretrained_mnist,
                             load_pretrained_svhn)
 from bivae.dataloaders import MNIST_SVHN_DL
-from bivae.my_pythae.models import my_VAE
+from bivae.pythae_models.models import my_VAE
 from bivae.utils import update_details
 
 from ..modalities.mnist_svhn import fid

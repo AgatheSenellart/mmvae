@@ -9,6 +9,7 @@ from pythae.models.base.base_utils import ModelOutput
 
 import numpy as np
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DeepCCA_celeba(nn.Module):
 
@@ -56,7 +57,7 @@ class wrapper_encoder_lcca_celeb(nn.Module):
         h = self.encoder(x)['embedding'].cpu().numpy()
         result = h - self.m.reshape([1, -1]).repeat(len(h), axis=0)
         result = np.dot(result, self.w)
-        o = ModelOutput(embedding = torch.from_numpy(result).cuda().float())
+        o = ModelOutput(embedding = torch.from_numpy(result).to(device).float())
         return o
 
 class wrapper_encoder_lcca_attributes(nn.Module):
@@ -81,7 +82,7 @@ class wrapper_encoder_lcca_attributes(nn.Module):
         result = h - self.m.reshape([1, -1]).repeat(len(h), axis=0)
         result = np.dot(result, self.w)
 
-        o = ModelOutput(embedding = torch.from_numpy(result).cuda().float())
+        o = ModelOutput(embedding = torch.from_numpy(result).to(device).float())
         return o
 
 def load_dcca_celeba():

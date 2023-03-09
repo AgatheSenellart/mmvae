@@ -10,8 +10,10 @@ import numpy as np
 
 from bivae.utils import unpack_data
 from torchvision.models import resnet50
+from tqdm import tqdm 
 
 # We use the same architecture as for the encoder as a classifier
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class Resnet_classifier_celeba(torch.nn.Module):
 
@@ -54,21 +56,21 @@ def load_celeba_classifiers():
     model1.eval()
     model2.eval()
 
-    model1.cuda()
-    model2.cuda()
+    model1.to(device)
+    model2.to(device)
     return model1, model2
 
 
 if __name__ == '__main__':
 
-
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     batch_size = 256
     shuffle = True
-    num_epochs = 30
+    num_epochs = 15
 
-    train_loader, test_loader, val_loader = CELEBA_DL('../data/').getDataLoaders(batch_size,shuffle, len_train=None)
+    train_loader, test_loader, val_loader = CELEBA_DL('../data/').getDataLoaders(batch_size,shuffle, len_train=None, device=device)
 
-    model = create_resnet_finetune().cuda()
+    model = create_resnet_finetune().to(device)
     optimizer = optim.Adam(model.parameters(), lr=1e-3)
     objective = torch.nn.BCEWithLogitsLoss(reduction='sum')
 
@@ -76,8 +78,8 @@ if __name__ == '__main__':
     def train(epoch):
         model.train()
         b_loss = 0
-        for i, data_ in enumerate(train_loader):
-            data = unpack_data(data_)
+        for i, data_ in tqdm(enumerate(train_loader)):
+            data = unpack_data(data_, device=device)
             optimizer.zero_grad()
             data, labels = data[0], data[1] # data is of shape (n_batch,3, 64, 64) and labels (n_batch, 1, 1, 40)
             logits = model(data) # Shape (n_batch, 40)
@@ -94,7 +96,7 @@ if __name__ == '__main__':
         loss, acc = 0, 0
         with torch.no_grad():
             for i, data_ in enumerate(val_loader):
-                data = unpack_data(data_)
+                data = unpack_data(data_, device=device)
                 data, labels = data[0], data[1]
                 logits = model(data)
                 bloss = objective(logits, labels.squeeze())

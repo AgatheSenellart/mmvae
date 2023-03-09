@@ -17,12 +17,12 @@ def fid(model, batch_size):
         # Get the data with suited transform
         tx = transforms.Compose([transforms.ToTensor(), transforms.Resize((299, 299)), add_channels()])
 
-        _, test, _ = model.getDataLoaders(batch_size, transform=tx)
+        _, test, _ = model.getDataLoaders(batch_size, transform=tx, device=model.params.device)
 
         ref_activations = [[],[]]
 
         for dataT in test:
-            data = unpack_data(dataT)
+            data = unpack_data(dataT, device=model.params.device)
 
             ref_activations[0].append(model_fid(data[0]))
             ref_activations[1].append(model_fid(data[1]))
@@ -31,11 +31,11 @@ def fid(model, batch_size):
 
         # Generate data from conditional
 
-        _, test, _ = model.getDataLoaders(batch_size)
+        _, test, _ = model.getDataLoaders(batch_size, device=model.params.device)
 
         gen_samples = [[],[]]
         for dataT in test:
-            data = unpack_data(dataT)
+            data = unpack_data(dataT, device=model.params.device)
             gen = model._sample_from_conditional(data, n=1)
             gen_samples[0].extend(gen[1][0])
             gen_samples[1].extend(gen[0][1])
@@ -49,7 +49,7 @@ def fid(model, batch_size):
 
         gen_activations = [[],[]]
         for dataT in gen_dataloader:
-            data = unpack_data(dataT)
+            data = unpack_data(dataT, device=model.params.device)
             gen_activations[0].append(model_fid(data[0]))
             gen_activations[1].append(model_fid(data[1]))
         gen_activations = [np.concatenate(g) for g in gen_activations]

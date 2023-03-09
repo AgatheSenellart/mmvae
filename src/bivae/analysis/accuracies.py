@@ -40,7 +40,7 @@ def compute_accuracies(model, data, classes, n_data=20, ns=100):
         # Compute cross_coherence
         labels = conditional_labels(model, data, n_data, ns)
         # Create an extended classes array where each original label is replicated ns times
-        classes_mul = torch.stack([classes[0][:n_data] for _ in range(ns)]).permute(1,0).cuda()
+        classes_mul = torch.stack([classes[0][:n_data] for _ in range(ns)]).permute(1,0).to(model.params.device)
         
         accuracies = [[None for _ in range(model.mod)] for _ in range(model.mod)]
         for i in range(model.mod):

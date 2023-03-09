@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from ..objectives import mcca_loss
 from pythae.models import VAE_LinNF_Config, VAE_IAF_Config, VAEConfig
-from bivae.my_pythae.models import my_VAE, my_VAE_LinNF, my_VAE_IAF
+from bivae.pythae_models.models import my_VAE, my_VAE_LinNF, my_VAE_IAF
 from pythae.models.nn.default_architectures import Encoder_VAE_MLP, Decoder_AE_MLP
 from bivae.models.nn import Encoder_VAE_SVHN
 

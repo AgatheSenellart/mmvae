@@ -59,7 +59,7 @@ class Solver():
             self.model.train()
 
             for dataT in tqdm(train_loader):
-                data = unpack_data(dataT)
+                data = unpack_data(dataT, device=self.device)
                 self.optimizer.zero_grad()
                 outputs = self.model(data)
                 loss = self.loss(outputs)
@@ -129,7 +129,7 @@ class Solver():
             labels = []
             for dataT in test_loader:
                 labels.append(dataT[0][1])
-                data = unpack_data(dataT)
+                data = unpack_data(dataT, device=self.device)
                
                 outputs_batch = self.model(data)
                 for i in range(len(outputs)):
@@ -149,11 +149,11 @@ if __name__ == '__main__':
     ############
     # Parameters Section
 
-    device = torch.device('cuda')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     print("Using", torch.cuda.device_count(), "GPUs")
 
     # the path to save the models
-    save_to = Path('../dcca/experiments/msf')
+    save_to = Path('../experiments/dcca/msf')
     save_to.mkdir(parents=True, exist_ok=True)
 
     # the size of the new space learned by the model (number of the new features)
@@ -162,9 +162,9 @@ if __name__ == '__main__':
 
     # the parameters for training the network
     learning_rate = 1e-3
-    epoch_num = 100
+    epoch_num = 30
     batch_size = 800
-    train_loader,test_loader, val_loader = MNIST_SVHN_FASHION_DL('../data').getDataLoaders(batch_size=batch_size)
+    train_loader,test_loader, val_loader = MNIST_SVHN_FASHION_DL('../data').getDataLoaders(batch_size=batch_size, device=device)
 
 
     # the regularization parameter of the network
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     apply_linear_cca = False
     # end of parameters section
     ############
-    wandb.init(project = 'DCCA_mnist_svhn_fashion', entity = 'asenellart', config = {'batch_size' : batch_size,
+    wandb.init(project = 'DCCA_mnist_svhn_fashion', anonymous="allow", config = {'batch_size' : batch_size,
                                                                                  'learning_rate': learning_rate,
                                                                                  'reg_par' : reg_par,
                                                                                  'linear_cca' : linear_cca is not None,

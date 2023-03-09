@@ -14,7 +14,7 @@ from bivae.analysis.classifiers.CelebA_classifier import \
     load_celeba_classifiers
 from bivae.dataloaders import CELEBA_DL
 from bivae.models.modalities.celeba import *
-from bivae.my_pythae.models import my_VAE
+from bivae.pythae_models.models import my_VAE
 from bivae.utils import adjust_shape, update_details
 from bivae.vis import save_samples
 

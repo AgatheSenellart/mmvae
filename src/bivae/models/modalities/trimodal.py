@@ -19,12 +19,12 @@ def fid(model, batch_size):
         # Get the data with suited transform
         tx = transforms.Compose([transforms.ToTensor(), transforms.Resize((299, 299)), add_channels()])
 
-        _, test, _ = model.getDataLoaders(batch_size, transform=tx)
+        _, test, _ = model.getDataLoaders(batch_size, transform=tx, device=model.params.device)
 
         ref_activations = [[] for i in range(model.mod)]
 
         for dataT in test:
-            data = unpack_data(dataT)
+            data = unpack_data(dataT, device=model.params.device)
             for i in range(model.mod):
                 ref_activations[i].append(model_fid(data[i]))
             
@@ -33,11 +33,11 @@ def fid(model, batch_size):
 
         # Generate data from conditional
 
-        _, test, _ = model.getDataLoaders(batch_size)
+        _, test, _ = model.getDataLoaders(batch_size, device=model.params.device)
 
         gen_samples = [[[] for j in range(model.mod)] for i in range(model.mod)]
         for dataT in test:
-            data = unpack_data(dataT)
+            data = unpack_data(dataT, device=model.params.device)
             gen = model._sample_from_conditional(data, n=1)
             for i in range(model.mod):
                 for j in range(model.mod):

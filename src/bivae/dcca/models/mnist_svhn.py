@@ -9,6 +9,7 @@ from bivae.models.nn import Encoder_VAE_SVHN
 
 from ..objectives import cca_loss
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 class DeepCCA_MNIST_SVHN(nn.Module):
 
@@ -54,14 +55,14 @@ class wrapper_encoder_lcca_model1(nn.Module):
         # get the outdim size of the encoders from the json file
 
         model1 = Encoder_VAE_MLP(VAEConfig((1,28,28), 16))
-        model1.load_state_dict(torch.load('../experiments/dcca/mnist_svhn/model1.pt'))
+        model1.load_state_dict(torch.load('../experiments/dcca/mnist_svhn/model1.pt', map_location=device))
         self.latent_dim = dim
 
         self.encoder = model1
         self.m = np.load('../experiments/dcca/mnist_svhn/l_cca_m.npy')[0]
-        self.m = torch.tensor(self.m).cuda().float()
+        self.m = torch.tensor(self.m).to(device).float()
         self.w = np.load('../experiments/dcca/mnist_svhn/l_cca_w.npy')[0]
-        self.w = torch.tensor(self.w).cuda().float()
+        self.w = torch.tensor(self.w).to(device).float()
         
     def forward(self, x):
         h = self.encoder(x)['embedding']
@@ -76,14 +77,14 @@ class wrapper_encoder_lcca_model2(nn.Module):
         super(wrapper_encoder_lcca_model2, self).__init__()
 
         model2 = Encoder_VAE_SVHN(VAEConfig((3,32,32), 16))
-        model2.load_state_dict(torch.load('../experiments/dcca/mnist_svhn/model2.pt'))
+        model2.load_state_dict(torch.load('../experiments/dcca/mnist_svhn/model2.pt', map_location=device))
         self.latent_dim = dim
 
         self.encoder = model2
         self.m = np.load('../experiments/dcca/mnist_svhn/l_cca_m.npy')[1]
-        self.m = torch.tensor(self.m).cuda().float()
+        self.m = torch.tensor(self.m).to(device).float()
         self.w = np.load('../experiments/dcca/mnist_svhn/l_cca_w.npy')[1]
-        self.w = torch.tensor(self.w).cuda().float()
+        self.w = torch.tensor(self.w).to(device).float()
 
     def forward(self, x):
         self.encoder.eval()

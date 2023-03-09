@@ -147,27 +147,3 @@ class Inception_quality_assess(GenerativeQualityAssesser):
 
 
 
-
-class custom_mnist_fashion(GenerativeQualityAssesser):
-
-    batchsize = 47
-    n_samples = 100*batchsize
-    gen_transform = None
-    nb_clusters = 20
-    dims = [16,16]
-    name = 'custom_mnist_fashion'
-    device = 'cuda'
-
-    def __init__(self, model):
-        mnist_vae = AutoModel.load_from_folder(
-            '/home/agathe/Code/vaes/benchmark_VAE/my_model/MNIST_cnn_vae_training_22_08/final_model/')
-        fashion_vae = AutoModel.load_from_folder(
-            '/home/agathe/Code/vaes/benchmark_VAE/my_model/FashionMnist_cnn_vae_training_19_08/final_model/')
-
-        mnist_vae.to(self.device)
-        fashion_vae.to(self.device)
-        encoders = [wrapper_pythae_model(mnist_vae),wrapper_pythae_model(fashion_vae)]
-        tx = transforms.ToTensor()
-        t,s,v = model.getDataLoaders(self.batchsize, transform = tx)
-        print(torch.max(s.dataset[0][0][0]),torch.max(s.dataset[0][1][0]) )
-        super(custom_mnist_fashion, self).__init__(encoders, self.batchsize,self.n_samples,self.nb_clusters,s,self.dims)

@@ -25,7 +25,6 @@ if __name__ == '__main__':
 
     # get the individual datasets
     tx = transforms.ToTensor()
-    path_data = '../data'=
     path_data = '../data/'
 
     train_mnist = datasets.MNIST(path_data, train=True, download=True, transform=tx)

@@ -16,7 +16,7 @@ from bivae.vis import tensors_to_df, plot_embeddings_colorbars, plot_samples_pos
 from torchvision.utils import save_image
 import pythae
 from pythae.models import VAE_LinNF_Config, VAE_IAF_Config, VAEConfig
-from bivae.my_pythae.models import my_VAE, my_VAE_LinNF, my_VAE_IAF, my_VAE_MAF, VAE_MAF_Config
+from bivae.pythae_models.models import my_VAE, my_VAE_LinNF, my_VAE_IAF, my_VAE_MAF, VAE_MAF_Config
 from pythae.models.nn.default_architectures import Encoder_VAE_MLP, Decoder_AE_MLP
 from bivae.models.nn import Encoder_VAE_SVHN
 from pythae.models.nn.default_architectures import Encoder_VAE_MLP, Decoder_AE_MLP
@@ -47,7 +47,7 @@ from bivae.models.modalities.celeba import *
 class JMVAE_NF_CELEBA(JMVAE_NF):
 
     shape_mods = [(3, 64, 64), (1,1,40)]
-    modelName = 'jmvae_nf_dcca_celeb_a'
+    modelName = 'jnf_dcca_celeb_a'
 
 
     def __init__(self, params):

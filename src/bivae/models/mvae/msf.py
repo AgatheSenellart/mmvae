@@ -12,7 +12,7 @@ from torchvision import transforms
 
 from bivae.analysis import MnistClassifier, SVHNClassifier
 from bivae.dataloaders import MNIST_SVHN_FASHION_DL
-from bivae.my_pythae.models import my_VAE
+from bivae.pythae_models.models import my_VAE
 from bivae.utils import update_details
 from bivae.vis import plot_hist
 from .mvae import MVAE

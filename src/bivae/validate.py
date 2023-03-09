@@ -40,7 +40,7 @@ random.seed(args.seed)
 # Log parameters of the experiments
 experiment_name = args.wandb_experiment if hasattr(args,'wandb_experiment') else args.model
 
-wandb.init(project = experiment_name , entity="asenellart") 
+wandb.init(project = experiment_name , anonymous="allow") 
 wandb.config.update(args)
 wandb.define_metric('epoch')
 wandb.define_metric('*', step_metric='epoch')
@@ -92,7 +92,6 @@ model.sampler = None
 # assesser = Inception_quality_assess(model)
 # assesser.check_activations(runPath)
 
-# assesser = custom_mnist_fashion(model)
 
 
 def eval():
@@ -116,17 +115,17 @@ def eval():
         update_dict_list(b_metrics, model.compute_metrics(data, runPath, epoch=2, classes=classes,n_data='all', freq=3, ns=1))
         if i == 0:
             model.sample_from_conditional(data, runPath, epoch=0)
-            # try: 
-            #     model.sample_from_poe(data, runPath, 0, n=10, divide_prior=True)
-            # except:
-            #     print('No function implemented for poe generation')
+            try: 
+                model.sample_from_poe(data, runPath, 0, n=10, divide_prior=True)
+            except:
+                print('No function implemented for poe generation')
             
             # model.reconstruct(data, runPath, epoch=0)
             # model.analyse(data, runPath, epoch=0, classes=classes)
             # model.analyse_posterior(data, n_samples=10, runPath=runPath, epoch=0, ticks=None, N=100)
-            model.generate(runPath, epoch=0, N=32, save=True)
-            model.generate_from_conditional(runPath, epoch=0, N=32, save=True)
-
+            # model.generate(runPath, epoch=0, N=32, save=True)
+            # model.generate_from_conditional(runPath, epoch=0, N=32, save=True)
+        1/0
 
     update_dict_list(b_metrics, model.compute_fid(batch_size=256))
 

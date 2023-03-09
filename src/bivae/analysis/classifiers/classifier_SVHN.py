@@ -91,7 +91,8 @@ if __name__ == '__main__':
     num_epochs = 15
     shuffle = True
     print("loading dataset")
-    train_loader, test_loader = SVHN_DL().getDataLoaders(batch_size, shuffle, tx)
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    train_loader, test_loader = SVHN_DL().getDataLoaders(batch_size, shuffle, device, tx)
 
     item, label = next(iter(train_loader))
     print("creating model")

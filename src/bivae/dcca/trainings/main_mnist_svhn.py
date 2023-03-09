@@ -1,21 +1,18 @@
 
-import numpy as np
-from sklearn import svm
-from tqdm import tqdm
 import time
 from pathlib import Path
+
 import matplotlib.pyplot as plt
-
-
+import numpy as np
 import torch
 import wandb
-from torch.utils.data import BatchSampler, SequentialSampler, RandomSampler
-
-
-from bivae.dcca.linear_cca import linear_cca
 from bivae.dataloaders import MNIST_SVHN_DL
+from bivae.dcca.linear_cca import linear_cca
 from bivae.dcca.models import DeepCCA_MNIST_SVHN
-from bivae.dcca.utils import  svm_classify_view, unpack_data, visualize_umap, save_encoders
+from bivae.dcca.utils import (save_encoders, svm_classify_view, unpack_data,
+                              visualize_umap)
+from torch.utils.data import BatchSampler, SequentialSampler
+from tqdm import tqdm
 
 torch.set_default_tensor_type(torch.DoubleTensor)
 
@@ -59,7 +56,7 @@ class Solver():
             self.model.train()
 
             for dataT in tqdm(train_loader):
-                data = unpack_data(dataT)
+                data = unpack_data(dataT, device=self.device)
                 self.optimizer.zero_grad()
                 batch_x1 = data[0]
                 batch_x2 = data[1]
@@ -132,7 +129,7 @@ class Solver():
             labels = []
             for dataT in test_loader:
                 labels.append(dataT[0][1])
-                data = unpack_data(dataT)
+                data = unpack_data(dataT, device=device)
                 batch_x1 = data[0]
                 batch_x2 = data[1]
                 o1, o2 = self.model(batch_x1, batch_x2)
@@ -154,7 +151,7 @@ if __name__ == '__main__':
     ############
     # Parameters Section
 
-    device = torch.device('cuda')
+    device = torch.device('cuda') if  torch.cuda.is_available() else torch.device('cpu')
     print("Using", torch.cuda.device_count(), "GPUs")
 
     # the path to save the models
@@ -167,9 +164,9 @@ if __name__ == '__main__':
 
     # the parameters for training the network
     learning_rate = 1e-3
-    epoch_num = 100
+    epoch_num = 30
     batch_size = 800
-    train_loader,test_loader, val_loader = MNIST_SVHN_DL('../data').getDataLoaders(batch_size=batch_size)
+    train_loader,test_loader, val_loader = MNIST_SVHN_DL('../data/').getDataLoaders(batch_size=batch_size, device=device)
 
 
     # the regularization parameter of the network
@@ -185,7 +182,7 @@ if __name__ == '__main__':
     apply_linear_cca = True
     # end of parameters section
     ############
-    wandb.init(project = 'DCCA_mnist_svhn', entity = 'asenellart', config = {'batch_size' : batch_size,
+    wandb.init(project = 'DCCA_mnist_svhn', anonymous="allow", config = {'batch_size' : batch_size,
                                                                                  'learning_rate': learning_rate,
                                                                                  'reg_par' : reg_par,
                                                                                  'linear_cca' : linear_cca is not None},

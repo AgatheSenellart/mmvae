@@ -14,7 +14,7 @@ from bivae.analysis import (compute_accuracies, load_pretrained_fashion,
 from bivae.dataloaders import MNIST_SVHN_FASHION_DL
 from bivae.dcca.models.mnist_svhn_fashion import load_dcca_mnist_svhn_fashion
 from bivae.models.nn import Encoder_VAE_SVHN
-from bivae.my_pythae.models import (VAE_MAF_Config, my_VAE, my_VAE_IAF,
+from bivae.pythae_models.models import (VAE_MAF_Config, my_VAE, my_VAE_IAF,
                                     my_VAE_MAF)
 from bivae.utils import add_channels, update_details
 

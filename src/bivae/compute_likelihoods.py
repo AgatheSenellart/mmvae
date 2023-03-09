@@ -43,7 +43,7 @@ random.seed(args.seed)
 
 # Define parameters for Wandb logging
 experiment_name = args.wandb_experiment if hasattr(args, 'wandb_experiment') else args.model
-wandb.init(project = experiment_name , entity="asenellart") 
+wandb.init(project = experiment_name , anonymous="allow") 
 wandb.config.update(args)
 wandb.define_metric('epoch')
 wandb.define_metric('*', step_metric='epoch')
@@ -91,7 +91,6 @@ print(f"Train : {len(train_loader.dataset)},"
 # model.sampler = GaussianMixtureSampler()
 model.sampler = None
 
-# assesser = custom_mnist_fashion(model)
 def eval():
     """Compute all metrics on the entire test dataset"""
 

@@ -127,7 +127,7 @@ class MMVAE(Multi_VAES):
         # Then sample K samples for each distribution
         bernouillis = np.random.binomial(1,1/2, size=K*len(data[0]))
         bern_repet = np.stack(self.params.latent_dim * [bernouillis]).T # (K*n_data_points , latent_dim)
-        bern = torch.from_numpy(bern_repet.reshape(K,len(data[0]), -1)).cuda()
+        bern = torch.from_numpy(bern_repet.reshape(K,len(data[0]), -1)).to(self.params.device)
         # print(bern[0,0])
 
         z_xy =  bern * qz_xs[0].rsample([K]) + (1-bern) * qz_xs[1].rsample([K]) # (K, n_data_points, latent_dim)

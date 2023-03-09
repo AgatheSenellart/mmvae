@@ -37,7 +37,7 @@ with open(info.config_path, 'r') as fcc_file:
 learning_rate = args.learning_rate
 # Log parameters of the experiments
 experiment_name = args.wandb_experiment
-wandb.init(project = experiment_name , entity="asenellart", config={'lr' : learning_rate}) 
+wandb.init(project = experiment_name , anonymous="allow", config={'lr' : learning_rate}) 
 wandb.config.update(args)
 wandb.define_metric('epoch')
 wandb.define_metric('*', step_metric='epoch')
@@ -71,11 +71,6 @@ modelC = getattr(models, 'VAE_{}'.format(args.model))
 model = modelC(args).to(device)
 
 skip_warmup = args.skip_warmup
-# pretrained_joint_path = '../experiments/jmvae_nf_mnist/2022-06-15/2022-06-15T09:53:04.9472623yb2z1h0/'
-# pretrained_joint_path = '../experiments/jmvae_nf_circles_squares/2022-06-14/2022-06-14T16:02:13.698346trcaealp/'
-# pretrained_joint_path = '../experiments/clean_mnist_svhn/2022-06-29/2022-06-29T11:41:41.132687__5qri92/'
-# pretrained_joint_path = '../experiments/jmvae/2022-06-28/2022-06-28T17:25:01.03903846svjh2d/'
-# pretrained_joint_path = '../experiments/celeba/2022-10-13/2022-10-13T13:54:42.595068mmpybk9u/'
 pretrained_joint_path = '../experiments/joint_encoders/'+ args.experiment.split('/')[-1] + '/'
 
 min_epoch = 1
@@ -119,12 +114,7 @@ scheduler = ReduceLROnPlateau(optimizer,'min')
 
 train_loader, test_loader, val_loader = model.getDataLoaders(args.batch_size, device=device)
 
-# Train the unimodal encoders using both true and generated samples from the joint encoder
-if args.skip_warmup and args.use_gen:
-    data = [torch.load(pretrained_joint_path + 'generated_modality_{}.pt'.format(i)).to('cpu') for i in range(model.mod)]
-    gen_dataset = MultimodalBasicDataset(data, length=args.len_gen)
-    true_and_gen_dataset = ConcatDataset([train_loader.dataset, gen_dataset])
-    train_loader = DataLoader(true_and_gen_dataset, args.batch_size, shuffle=True, pin_memory=True)
+
 
 print(f"Train : {len(train_loader.dataset)},"
       f"Test : {len(test_loader.dataset)},"
@@ -141,7 +131,7 @@ t_objective = objective
 
 # Define a sampler for generating new samples
 # model.sampler = GaussianMixtureSampler()
-model.sampler = None # During training no need to use a special sampler
+model.sampler = None # Only use the prior
 
 
 def train(epoch, agg):
@@ -188,25 +178,14 @@ def test(epoch, agg):
             update_details(b_details, details)
             if i == 0:
                 wandb.log({'epoch' : epoch})
-                # Compute accuracies
-                # if hasattr(model, 'dcca'):
-                #     model.plot_dcca_values(data,runPath, classes[0])
+
                     
                 if not args.no_analytics and (epoch%args.freq_analytics == 0 or epoch==1):
 
-                    # wandb.log(model.compute_metrics(data, runPath, epoch, classes))
                     model.sample_from_conditional(data, runPath,epoch)
                     model.reconstruct(data, runPath, epoch)
-                    # model.analyse(data, runPath, epoch, classes=classes)
-                    # model.analyse_posterior(data, n_samples=10, runPath=runPath, epoch=epoch, ticks=ticks, N=100)
                     model.generate(runPath, epoch, N=32, save=True)
-                    # model.generate_from_conditional(runPath, epoch, N=32, save=True)
-                    if args.model == 'jnf_circles_squares' :
-                        if epoch == 1:
-                            print("Computing test histogram")
-                            plot_hist(extract_rayon(data[0].unsqueeze(1)), runPath + '/hist_test_0.png')
-                            plot_hist(extract_rayon(data[1].unsqueeze(1)), runPath + '/hist_test_1.png')
-                        model.analyse_rayons(data, dataT[0][2],dataT[1][2],runPath, epoch, [dataT[0][1], 1-dataT[0][1]])
+                    
 
     b_details = {k + '_test': b_details[k] / len(val_loader.dataset) for k in b_details.keys()}
     wandb.log(b_details)

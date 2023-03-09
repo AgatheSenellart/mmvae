@@ -4,21 +4,17 @@
 
 # Base JMVAE-NF class definition
 
-from itertools import combinations
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.distributions as dist
-from sklearn.manifold import TSNE
 import wandb
 
-import bivae.analysis.prd as prd
-from torchvision import transforms
 from umap import UMAP
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score
-from bivae.utils import get_mean, kl_divergence, add_channels, adjust_shape, update_details
-from bivae.vis import tensors_to_df, plot_embeddings_colorbars, plot_samples_posteriors, plot_hist, save_samples
+from bivae.utils import adjust_shape, update_details
+from bivae.vis import plot_embeddings_colorbars, plot_samples_posteriors, save_samples
 from torchvision.utils import save_image, make_grid
 
 
@@ -199,7 +195,7 @@ class Multi_VAES(nn.Module):
         n_data = len(bdata[0])
         self.eval()
         samples = self._sample_from_conditional(bdata, n)
-        res_list = [[None,None],[None,None]]
+        res_list = [[None for m in range(self.mod)] for m in range(self.mod)]
         for r, recon_list in enumerate(samples):
             for o, recon in enumerate(recon_list):
                 _data = bdata[r].cpu()

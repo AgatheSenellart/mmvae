@@ -9,7 +9,7 @@ import wandb
 # helper to vectorise computation
 def compute_microbatch_split(x, K):
     """ Checks if batch needs to be broken down further to fit in memory. """
-    B = x[0].size(0) if is_multidata(x) else x.size(0)
+    B = x[0].size(0) if is_multidata(x) else x.size(0) # batch size
     S = sum([1.0 / (K * prod(_x.size()[1:])) for _x in x]) if is_multidata(x) \
         else 1.0 / (K * prod(x.size()[1:]))
     S = int(1e8 * S)  # float heuristic for 12Gb cuda memory
@@ -355,7 +355,7 @@ def _m_iwae_looser(model, x, K=1):
         lpx_z = torch.stack(lpx_z).sum(0)
         lw = lpz + lpx_z - lqz_x
         lws.append(lw)
-    return torch.stack(lws)  # (n_modality * n_samples) x batch_size, batch_size
+    return torch.stack(lws)  # (n_modalities, K, batch_size)
 
 
 def m_iwae_looser(model, x, K=1, beta = 0):
@@ -385,23 +385,8 @@ def _m_dreg(model, x, K=1, beta=0):
         lpx_z = torch.stack(lpx_z).sum(0)
         lw = lpz + lpx_z - lqz_x
         lws.append(lw)
+    # lws return shape (K*n_modalities, nbatch )
     return torch.cat(lws), torch.cat(zss)
-
-
-def m_dreg(model, x, K=1, beta=0, warmup=0, epoch=1, beta_prior=1):
-    """Computes dreg estimate for log p_\theta(x) for multi-modal vae """
-    S = compute_microbatch_split(x, K)
-    x_split = zip(*[_x.split(S) for _x in x])
-    lw, zss = zip(*[_m_dreg(model, _x, K) for _x in x_split])
-    lw = torch.cat(lw, 1)  # concat on batch
-    zss = torch.cat(zss, 1)  # concat on batch
-    with torch.no_grad():
-        grad_wt = (lw - torch.logsumexp(lw, 0, keepdim=True)).exp()
-        if zss.requires_grad:
-            zss.register_hook(lambda grad: grad_wt.unsqueeze(-1) * grad) # Multiply the gradient by (w_i / sum_j w_j) to get the Dreg gradient
-    details = {}
-    return (grad_wt * lw).sum(), details
-
 
 def _m_dreg_looser(model, x, K=1, beta=0):
     """DERG estimate for log p_\theta(x) for multi-modal vae -- fully vectorised
@@ -410,6 +395,7 @@ def _m_dreg_looser(model, x, K=1, beta=0):
     qz_xs, px_zs, zss, qz_x_params = model(x, K)
     qz_xs_ = [model.qz_x(*[p.detach() for p in qz_x_params[i]]) for i in range(len(model.vaes))]
     lws = []
+    # iterate over the conditioning modalities
     for r, vae in enumerate(model.vaes):
         lpz = model.pz(*model.pz_params).log_prob(zss[r]).sum(-1)
         lqz_x = log_mean_exp(torch.stack([qz_x_.log_prob(zss[r]).sum(-1) for qz_x_ in qz_xs_]))
@@ -419,7 +405,26 @@ def _m_dreg_looser(model, x, K=1, beta=0):
         lpx_z = torch.stack(lpx_z).sum(0)
         lw = lpz + lpx_z - lqz_x
         lws.append(lw)
+    # lws return shape (n_modalities, K, n_batch )
     return torch.stack(lws), torch.stack(zss)
+
+
+
+def m_dreg(model, x, K=1, beta=0, warmup=0, epoch=1, beta_prior=1):
+    """Computes dreg estimate for log p_\theta(x) for multi-modal vae """
+    S = compute_microbatch_split(x, K)
+    x_split = zip(*[_x.split(S) for _x in x])
+    lw, zss = zip(*[_m_dreg(model, _x, K) for _x in x_split])
+    lw = torch.cat(lw,1)  # concat on batch
+    zss = torch.cat(zss, 1)  # concat on batch
+    with torch.no_grad():
+        grad_wt = (lw - torch.logsumexp(lw, 0, keepdim=True)).exp()
+        if zss.requires_grad:
+            zss.register_hook(lambda grad: grad_wt.unsqueeze(-1) * grad) # Multiply the gradient by (w_i / sum_j w_j) to get the Dreg gradient
+    details = {}
+    return (grad_wt * lw).sum(), details
+
+
 
 
 def m_dreg_looser(model, x,K,epoch,warmup, beta_prior):
@@ -432,10 +437,10 @@ def m_dreg_looser(model, x,K,epoch,warmup, beta_prior):
     lw = torch.cat(lw, 2)  # concat on batch
     zss = torch.cat(zss, 2)  # concat on batch
     with torch.no_grad():
-        grad_wt = (lw - torch.logsumexp(lw, 1, keepdim=True)).exp()
+        grad_wt = (lw - torch.logsumexp(lw, 1, keepdim=True)).exp() #(n_modalities,K, batch_size)
         if zss.requires_grad:
             zss.register_hook(lambda grad: grad_wt.unsqueeze(-1) * grad)
-    return (grad_wt * lw).mean(0).sum(), {}
+    return (grad_wt * lw).mean(0).sum(), {} # moyenne sur les modalités, somme sur le reste
 
 
 def m_elbo_nf_(model, x, K, epoch, warmup, beta_prior):
