@@ -22,10 +22,10 @@ if __name__ == '__main__':
 
     # get the individual datasets
     tx = transforms.ToTensor()
-    train_mnist = datasets.MNIST('../data', train=True, download=True, transform=tx)
-    test_mnist = datasets.MNIST('../data', train=False, download=True, transform=tx)
-    train_svhn = datasets.SVHN('../data', split='train', download=True, transform=tx)
-    test_svhn = datasets.SVHN('../data', split='test', download=True, transform=tx)
+    train_mnist = datasets.MNIST('../../data', train=True, download=True, transform=tx)
+    test_mnist = datasets.MNIST('../../data', train=False, download=True, transform=tx)
+    train_svhn = datasets.SVHN('../../data', split='train', download=True, transform=tx)
+    test_svhn = datasets.SVHN('../../data', split='test', download=True, transform=tx)
     # svhn labels need extra work
     train_svhn.labels = torch.LongTensor(train_svhn.labels.squeeze().astype(int)) % 10
     test_svhn.labels = torch.LongTensor(test_svhn.labels.squeeze().astype(int)) % 10
@@ -34,12 +34,12 @@ if __name__ == '__main__':
     svhn_l, svhn_li = train_svhn.labels.sort()
     idx1, idx2 = rand_match_on_idx(mnist_l, mnist_li, svhn_l, svhn_li, max_d=max_d, dm=dm)
     print('len train idx:', len(idx1), len(idx2))
-    torch.save(idx1, '../data/train-ms-mnist-idx.pt')
-    torch.save(idx2, '../data/train-ms-svhn-idx.pt')
+    torch.save(idx1, '../../data/train-ms-mnist-idx.pt')
+    torch.save(idx2, '../../data/train-ms-svhn-idx.pt')
 
     mnist_l, mnist_li = test_mnist.targets.sort()
     svhn_l, svhn_li = test_svhn.labels.sort()
     idx1, idx2 = rand_match_on_idx(mnist_l, mnist_li, svhn_l, svhn_li, max_d=max_d, dm=dm)
     print('len test idx:', len(idx1), len(idx2))
-    torch.save(idx1, '../data/test-ms-mnist-idx.pt')
-    torch.save(idx2, '../data/test-ms-svhn-idx.pt')
+    torch.save(idx1, '../../data/test-ms-mnist-idx.pt')
+    torch.save(idx2, '../../data/test-ms-svhn-idx.pt')

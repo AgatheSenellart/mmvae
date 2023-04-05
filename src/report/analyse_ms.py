@@ -170,7 +170,7 @@ def cross_coherence(epochs):
             mnist_mnist = mnist_net(px_zs[1][0].mean.squeeze(0))
             svhn_svhn = svhn_net(px_zs[0][1].mean.squeeze(0))
 
-            _, pred_m = torch.max(mnist_mnist.data, 1)
+            _, pred_m = torch.max(mnist_mnist.data,1)
             _, pred_s = torch.max(svhn_svhn.data, 1)
             total += targets.size(0)
             corr_m += (pred_m == targets).sum().item()

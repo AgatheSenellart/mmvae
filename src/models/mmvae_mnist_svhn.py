@@ -33,16 +33,16 @@ class MNIST_SVHN(MMVAE):
         return self._pz_params[0], F.softmax(self._pz_params[1], dim=1) * self._pz_params[1].size(-1)
 
     def getDataLoaders(self, batch_size, shuffle=True, device='cuda'):
-        if not (os.path.exists('../data/train-ms-mnist-idx.pt')
-                and os.path.exists('../data/train-ms-svhn-idx.pt')
-                and os.path.exists('../data/test-ms-mnist-idx.pt')
-                and os.path.exists('../data/test-ms-svhn-idx.pt')):
+        if not (os.path.exists('../../data/train-ms-mnist-idx.pt')
+                and os.path.exists('../../data/train-ms-svhn-idx.pt')
+                and os.path.exists('../../data/test-ms-mnist-idx.pt')
+                and os.path.exists('../../data/test-ms-svhn-idx.pt')):
             raise RuntimeError('Generate transformed indices with the script in bin')
         # get transformed indices
-        t_mnist = torch.load('../data/train-ms-mnist-idx.pt')
-        t_svhn = torch.load('../data/train-ms-svhn-idx.pt')
-        s_mnist = torch.load('../data/test-ms-mnist-idx.pt')
-        s_svhn = torch.load('../data/test-ms-svhn-idx.pt')
+        t_mnist = torch.load('../../data/train-ms-mnist-idx.pt')
+        t_svhn = torch.load('../../data/train-ms-svhn-idx.pt')
+        s_mnist = torch.load('../../data/test-ms-mnist-idx.pt')
+        s_svhn = torch.load('../../data/test-ms-svhn-idx.pt')
 
         # load base datasets
         t1, s1 = self.vaes[0].getDataLoaders(batch_size, shuffle, device)

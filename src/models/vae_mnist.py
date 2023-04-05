@@ -29,6 +29,8 @@ class Enc(nn.Module):
 
     def __init__(self, latent_dim, num_hidden_layers=1):
         super(Enc, self).__init__()
+        self.latent_dim = latent_dim
+        self.hidden_dim = hidden_dim
         modules = []
         modules.append(nn.Sequential(nn.Linear(data_dim, hidden_dim), nn.ReLU(True)))
         modules.extend([extra_hidden_layer() for _ in range(num_hidden_layers - 1)])
@@ -90,9 +92,9 @@ class MNIST(VAE):
     def getDataLoaders(batch_size, shuffle=True, device="cuda"):
         kwargs = {'num_workers': 1, 'pin_memory': True} if device == "cuda" else {}
         tx = transforms.ToTensor()
-        train = DataLoader(datasets.MNIST('../data', train=True, download=True, transform=tx),
+        train = DataLoader(datasets.MNIST('../../data', train=True, download=True, transform=tx),
                            batch_size=batch_size, shuffle=shuffle, **kwargs)
-        test = DataLoader(datasets.MNIST('../data', train=False, download=True, transform=tx),
+        test = DataLoader(datasets.MNIST('../../data', train=False, download=True, transform=tx),
                           batch_size=batch_size, shuffle=shuffle, **kwargs)
         return train, test
 

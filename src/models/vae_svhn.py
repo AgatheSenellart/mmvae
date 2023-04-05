@@ -25,6 +25,7 @@ class Enc(nn.Module):
 
     def __init__(self, latent_dim):
         super(Enc, self).__init__()
+        self.latent_dim = latent_dim
         self.enc = nn.Sequential(
             # input size: 3 x 32 x 32
             nn.Conv2d(imgChans, fBase, 4, 2, 1, bias=True),
@@ -104,9 +105,9 @@ class SVHN(VAE):
     def getDataLoaders(batch_size, shuffle=True, device='cuda'):
         kwargs = {'num_workers': 1, 'pin_memory': True} if device == 'cuda' else {}
         tx = transforms.ToTensor()
-        train = DataLoader(datasets.SVHN('../data', split='train', download=True, transform=tx),
+        train = DataLoader(datasets.SVHN('../../data', split='train', download=True, transform=tx),
                            batch_size=batch_size, shuffle=shuffle, **kwargs)
-        test = DataLoader(datasets.SVHN('../data', split='test', download=True, transform=tx),
+        test = DataLoader(datasets.SVHN('../../data', split='test', download=True, transform=tx),
                           batch_size=batch_size, shuffle=shuffle, **kwargs)
         return train, test
 

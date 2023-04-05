@@ -193,7 +193,12 @@ def _m_dreg_looser(model, x, K=1):
     This version is the looser bound---with the average over modalities outside the log
     """
     qz_xs, px_zs, zss = model(x, K)
+    # print(qz_xs)
     qz_xs_ = [vae.qz_x(*[p.detach() for p in vae.qz_x_params]) for vae in model.vaes]
+    print(qz_xs_[1].scale)
+    print(qz_xs_[0].scale)
+    print(qz_xs_[1].mean)
+    print(qz_xs_[0].mean)
     lws = []
     for r, vae in enumerate(model.vaes):
         lpz = model.pz(*model.pz_params).log_prob(zss[r]).sum(-1)
@@ -202,6 +207,8 @@ def _m_dreg_looser(model, x, K=1):
                      .mul(model.vaes[d].llik_scaling).sum(-1)
                  for d, px_z in enumerate(px_zs[r])]
         lpx_z = torch.stack(lpx_z).sum(0)
+        print(f'results from modality {r}')
+        print(lpz,lpx_z,lqz_x)
         lw = lpz + lpx_z - lqz_x
         lws.append(lw)
     return torch.stack(lws), torch.stack(zss)
@@ -219,5 +226,6 @@ def m_dreg_looser(model, x, K=1):
     with torch.no_grad():
         grad_wt = (lw - torch.logsumexp(lw, 1, keepdim=True)).exp()
         if zss.requires_grad:
+            print('We are in the zss requires_grad_loop')
             zss.register_hook(lambda grad: grad_wt.unsqueeze(-1) * grad)
-    return (grad_wt * lw).mean(0).sum()
+    return (grad_wt * lw).mean(0).sum(), zss

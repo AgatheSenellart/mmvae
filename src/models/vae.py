@@ -39,8 +39,9 @@ class VAE(nn.Module):
     def forward(self, x, K=1):
         self._qz_x_params = self.enc(x)
         qz_x = self.qz_x(*self._qz_x_params)
-        zs = qz_x.rsample(torch.Size([K]))
+        zs = torch.stack([self._qz_x_params[0]]*K)
         px_z = self.px_z(*self.dec(zs))
+        # print(*self.dec(zs))
         return qz_x, px_z, zs
 
     def generate(self, N, K):

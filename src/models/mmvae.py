@@ -36,10 +36,12 @@ class MMVAE(nn.Module):
             qz_xs.append(qz_x)
             zss.append(zs)
             px_zs[m][m] = px_z  # fill-in diagonal
+
         for e, zs in enumerate(zss):
             for d, vae in enumerate(self.vaes):
                 if e != d:  # fill-in off-diagonal
                     px_zs[e][d] = vae.px_z(*vae.dec(zs))
+                    
         return qz_xs, px_zs, zss
 
     def generate(self, N):
