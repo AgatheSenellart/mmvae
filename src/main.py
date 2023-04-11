@@ -127,70 +127,70 @@ model.vaes[0].dec.load_state_dict(torch.load('../decoder_mnist_pick.pt'))
 model.vaes[1].enc.load_state_dict(torch.load('../encoder_svhn_pick.pt'))
 model.vaes[1].dec.load_state_dict(torch.load('../decoder_svhn_pick.pt'))
 
-model.train()
-data = unpack_data(small_batch, device=device)
-loss, zss =  objective(model, data, K=args.K)
-loss = -loss
-loss.backward()
-print(loss)
-print(model._pz_params[1].grad)
+# model.train()
+# data = unpack_data(small_batch, device=device)
+# loss, zss =  objective(model, data, K=args.K)
+# loss = -loss
+# loss.backward()
+# print(loss)
+# print(model._pz_params[1].grad)
 # print(zss[0])
 # print(zss[1])
 
 
-# def train(epoch, agg):
-#     model.train()
-#     b_loss = 0
-#     for i, dataT in enumerate(train_loader):
-#         data = unpack_data(dataT, device=device)
-#         optimizer.zero_grad()
-#         loss = -objective(model, data, K=args.K)
-#         loss.backward()
-#         optimizer.step()
-#         b_loss += loss.item()
-#         if args.print_freq > 0 and i % args.print_freq == 0:
-#             print("iteration {:04d}: loss: {:6.3f}".format(i, loss.item() / args.batch_size))
-#     agg['train_loss'].append(b_loss / len(train_loader.dataset))
-#     print('====> Epoch: {:03d} Train loss: {:.4f}'.format(epoch, agg['train_loss'][-1]))
+def train(epoch, agg):
+    model.train()
+    b_loss = 0
+    for i, dataT in enumerate(train_loader):
+        data = unpack_data(dataT, device=device)
+        optimizer.zero_grad()
+        loss = -objective(model, data, K=args.K)
+        loss.backward()
+        optimizer.step()
+        b_loss += loss.item()
+        if args.print_freq > 0 and i % args.print_freq == 0:
+            print("iteration {:04d}: loss: {:6.3f}".format(i, loss.item() / args.batch_size))
+    agg['train_loss'].append(b_loss / len(train_loader.dataset))
+    print('====> Epoch: {:03d} Train loss: {:.4f}'.format(epoch, agg['train_loss'][-1]))
 
 
-# def test(epoch, agg):
-#     model.eval()
-#     b_loss = 0
-#     with torch.no_grad():
-#         for i, dataT in enumerate(test_loader):
-#             data = unpack_data(dataT, device=device)
-#             loss = -t_objective(model, data, K=args.K)
-#             b_loss += loss.item()
-#             if i == 0:
-#                 model.reconstruct(data, runPath, epoch)
-#                 if not args.no_analytics:
-#                     model.analyse(data, runPath, epoch)
-#     agg['test_loss'].append(b_loss / len(test_loader.dataset))
-#     print('====>             Test loss: {:.4f}'.format(agg['test_loss'][-1]))
+def test(epoch, agg):
+    model.eval()
+    b_loss = 0
+    with torch.no_grad():
+        for i, dataT in enumerate(test_loader):
+            data = unpack_data(dataT, device=device)
+            loss = -t_objective(model, data, K=args.K)
+            b_loss += loss.item()
+            if i == 0:
+                model.reconstruct(data, runPath, epoch)
+                if not args.no_analytics:
+                    model.analyse(data, runPath, epoch)
+    agg['test_loss'].append(b_loss / len(test_loader.dataset))
+    print('====>             Test loss: {:.4f}'.format(agg['test_loss'][-1]))
 
 
-# def estimate_log_marginal(K):
-#     """Compute an IWAE estimate of the log-marginal likelihood of test data."""
-#     model.eval()
-#     marginal_loglik = 0
-#     with torch.no_grad():
-#         for dataT in test_loader:
-#             data = unpack_data(dataT, device=device)
-#             marginal_loglik += -t_objective(model, data, K).item()
+def estimate_log_marginal(K):
+    """Compute an IWAE estimate of the log-marginal likelihood of test data."""
+    model.eval()
+    marginal_loglik = 0
+    with torch.no_grad():
+        for dataT in test_loader:
+            data = unpack_data(dataT, device=device)
+            marginal_loglik += -t_objective(model, data, K).item()
 
-#     marginal_loglik /= len(test_loader.dataset)
-#     print('Marginal Log Likelihood (IWAE, K = {}): {:.4f}'.format(K, marginal_loglik))
+    marginal_loglik /= len(test_loader.dataset)
+    print('Marginal Log Likelihood (IWAE, K = {}): {:.4f}'.format(K, marginal_loglik))
 
 
-# if __name__ == '__main__':
-#     with Timer('MM-VAE') as t:
-#         agg = defaultdict(list)
-#         for epoch in range(1, args.epochs + 1):
-#             train(epoch, agg)
-#             test(epoch, agg)
-#             save_model(model, runPath + '/model.rar')
-#             save_vars(agg, runPath + '/losses.rar')
-#             model.generate(runPath, epoch)
-#         if args.logp:  # compute as tight a marginal likelihood as possible
-#             estimate_log_marginal(5000)
+if __name__ == '__main__':
+    with Timer('MM-VAE') as t:
+        agg = defaultdict(list)
+        for epoch in range(1, args.epochs + 1):
+            train(epoch, agg)
+            test(epoch, agg)
+            save_model(model, runPath + '/model.rar')
+            save_vars(agg, runPath + '/losses.rar')
+            model.generate(runPath, epoch)
+        if args.logp:  # compute as tight a marginal likelihood as possible
+            estimate_log_marginal(5000)

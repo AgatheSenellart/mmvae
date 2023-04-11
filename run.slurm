@@ -23,5 +23,5 @@ source /home/$USER/.bashrc
 # tensorflow environment shloud bre created previously
 source activate mmvae_repro
 # python bin/make-mnist-svhn-idx.py
-# python -u src/main.py --model mnist_svhn --obj dreg --K 30 --learn-prior --looser --epochs 30 --batch-size 128 --latent-dim 20
-python src/report/analyse_ms.py --save-dir ../experiments/mnist-svhn/2023-04-02T15:15:43.155828radthud4
+python -u src/main.py --model mnist_svhn --obj dreg --K 30 --learn-prior --looser --epochs 30 --batch-size 128 --latent-dim 20 --seed 8
+# python src/report/analyse_ms.py --save-dir ../experiments/mnist-svhn/2023-04-02T15:15:43.155828radthud4
