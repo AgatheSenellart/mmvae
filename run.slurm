@@ -8,7 +8,7 @@
 #SBATCH --gres=gpu:rtx6000:1     # GPU nodes are only available in gpu partition
 #SBATCH --mem=15G                # Total memory allocated
 #SBATCH --hint=multithread       # we get logical cores (threads) not physical (cores)
-#SBATCH --time=15:00:00          # total run time limit (HH:MM:SS)
+#SBATCH --time=05:00:00          # total run time limit (HH:MM:SS)
 #SBATCH --output=%x_%j.out   # output file name
 
 echo "### Running $SLURM_JOB_NAME ###"
@@ -23,5 +23,6 @@ source /home/$USER/.bashrc
 # tensorflow environment shloud bre created previously
 source activate mmvae_repro
 # python bin/make-mnist-svhn-idx.py
-python -u src/main.py --model mnist_svhn --obj dreg --K 30 --learn-prior --looser --epochs 30 --batch-size 128 --latent-dim 20 --seed 8
+# python -u src/main.py --model mnist_svhn --obj dreg --K 30 --learn-prior --looser --epochs 30 --batch-size 128 --latent-dim 20 --seed 8
 # python src/report/analyse_ms.py --save-dir ../experiments/mnist-svhn/2023-04-02T15:15:43.155828radthud4
+python src/report/calculate_likelihoods.py --save-dir ../experiments/mnist-svhn/2023-04-02T15:15:43.155828radthud4 --iwae-samples 1000

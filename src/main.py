@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import os
 import sys
 import json
 from collections import defaultdict
@@ -14,6 +15,8 @@ from torch.utils.data import DataLoader
 import models
 import objectives
 from utils import Logger, Timer, save_model, save_vars, unpack_data
+
+
 
 parser = argparse.ArgumentParser(description='Multi-Modal VAEs')
 parser.add_argument('--experiment', type=str, default='', metavar='E',
@@ -112,20 +115,20 @@ objective = getattr(objectives,
 t_objective = getattr(objectives, ('m_' if hasattr(model, 'vaes') else '') + 'iwae')
 
 # Look at the computation on the first samples
-dl = DataLoader(train_loader.dataset,2,shuffle=False)
-small_batch = next(iter(dl))
+# dl = DataLoader(train_loader.dataset,2,shuffle=False)
+# small_batch = next(iter(dl))
 
-train_set_example_mnist = small_batch[0][0][0].mean(1)
-train_set_example_svhn = small_batch[1][0][0].mean(0).mean(1)
+# train_set_example_mnist = small_batch[0][0][0].mean(1)
+# train_set_example_svhn = small_batch[1][0][0].mean(0).mean(1)
 
-print(train_set_example_mnist,train_set_example_svhn)
+# print(train_set_example_mnist,train_set_example_svhn)
 
 # Load state dict for encoders and decoders
-model.vaes[0].enc.load_state_dict(torch.load('../encoder_mnist_pick.pt'))
-model.vaes[0].dec.load_state_dict(torch.load('../decoder_mnist_pick.pt'))
+# model.vaes[0].enc.load_state_dict(torch.load('../encoder_mnist_pick.pt'))
+# model.vaes[0].dec.load_state_dict(torch.load('../decoder_mnist_pick.pt'))
 
-model.vaes[1].enc.load_state_dict(torch.load('../encoder_svhn_pick.pt'))
-model.vaes[1].dec.load_state_dict(torch.load('../decoder_svhn_pick.pt'))
+# model.vaes[1].enc.load_state_dict(torch.load('../encoder_svhn_pick.pt'))
+# model.vaes[1].dec.load_state_dict(torch.load('../decoder_svhn_pick.pt'))
 
 # model.train()
 # data = unpack_data(small_batch, device=device)

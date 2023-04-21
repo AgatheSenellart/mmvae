@@ -12,10 +12,12 @@ import inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir) # for bash user
-os.chdir(parentdir) # for pycharm user
+# os.chdir(parentdir) # for pycharm user
 
 import models
 from utils import Logger, Timer, unpack_data, log_mean_exp
+
+print(os.getcwd())
 
 torch.backends.cudnn.benchmark = True
 parser = argparse.ArgumentParser(description='Analysing MM-DGM results')
