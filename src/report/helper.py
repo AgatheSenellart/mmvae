@@ -7,11 +7,20 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from gensim.models import FastText
-from nltk.tokenize import sent_tokenize, word_tokenize
+try:
+    from gensim.models import FastText
+except:
+    FastText = lambda x:None
+try:    
+    from nltk.tokenize import sent_tokenize, word_tokenize
+except:
+    sent_tokenize = 0
+    word_tokenize = 0
 from scipy.linalg import eig
-from skimage.filters import threshold_yen as threshold
-
+try :   
+    from skimage.filters import threshold_yen as threshold
+except:
+    threshold=0
 
 class OrderedCounter(Counter, OrderedDict):
     """Counter that remembers the order elements are first encountered."""

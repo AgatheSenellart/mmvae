@@ -21,8 +21,8 @@ module load cuda/11.4.0
 # Set your conda environment
 source /home/$USER/.bashrc
 # tensorflow environment shloud bre created previously
-source activate mmvae_repro_recent
+source activate middle_env
 # python bin/make-mnist-svhn-idx.py
 # python -u src/main.py --model mnist_svhn --obj dreg --K 30 --learn-prior --looser --epochs 30 --batch-size 128 --latent-dim 20 --seed 8
 python src/report/analyse_ms.py --save-dir experiments/mnist-svhn/2023-04-21T14:31:33.8456025l6894h5
-python src/report/calculate_likelihoods.py --save-dir experiments/mnist-svhn/2023-04-21T14:31:33.8456025l6894h5 --iwae-samples 1000
+# python src/report/calculate_likelihoods.py --save-dir experiments/mnist-svhn/2023-04-21T14:31:33.8456025l6894h5 --iwae-samples 1000

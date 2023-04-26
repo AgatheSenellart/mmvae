@@ -14,7 +14,7 @@ import inspect
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir) # for bash user
-os.chdir(parentdir) # for pycharm user
+# os.chdir(parentdir) # for pycharm user
 
 import models
 from helper import Latent_Classifier, SVHN_Classifier, MNIST_Classifier
@@ -229,11 +229,11 @@ def unpack_model(option='svhn'):
 if __name__ == '__main__':
     with Timer('MM-VAE analysis') as t:
         print('-' * 25 + 'latent classification accuracy' + '-' * 25)
-        print("Calculating latent classification accuracy for single MNIST VAE...")
-        classify_latents(epochs=30, option='mnist')
+        # print("Calculating latent classification accuracy for single MNIST VAE...")
+        # classify_latents(epochs=30, option='mnist')
         # #
-        print("\n Calculating latent classification accuracy for single SVHN VAE...")
-        classify_latents(epochs=30, option='svhn')
+        # print("\n Calculating latent classification accuracy for single SVHN VAE...")
+        # classify_latents(epochs=30, option='svhn')
         #
         print('\n' + '-' * 45 + 'cross coherence' + '-' * 45)
         cross_coherence(epochs=30)

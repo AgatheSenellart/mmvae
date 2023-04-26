@@ -8,7 +8,11 @@ from collections import defaultdict
 import numpy as np
 import torch
 import torch.nn as nn
-from nltk.tokenize import sent_tokenize, word_tokenize
+try:
+    from nltk.tokenize import sent_tokenize, word_tokenize
+except:
+    sent_tokenize=lambda x:None
+    word_tokenize=lambda x:None
 from torch.utils.data import Dataset
 from torchvision import transforms, models, datasets
 
