@@ -45,10 +45,11 @@ model = modelC(args)
 if args.cuda:
     model.cuda()
 
-model.load_state_dict(torch.load(runPath + '/model.rar', **conversion_kwargs), strict=False)
+model.load_state_dict(torch.load(runPath + '/model.rar', **conversion_kwargs, map_location=device), strict=False)
 B = 12000 // cmds.iwae_samples  # rough batch size heuristic
 train_loader, test_loader = model.getDataLoaders(B, device=device)
 N = len(test_loader.dataset)
+
 
 
 def m_iwae(qz_xs, px_zs, zss, x):
