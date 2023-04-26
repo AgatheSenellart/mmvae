@@ -16,6 +16,8 @@ parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir) # for bash user
 # os.chdir(parentdir) # for pycharm user
 
+print(os.getcwd())
+
 import models
 from helper import Latent_Classifier, SVHN_Classifier, MNIST_Classifier
 from utils import Logger, Timer
@@ -35,7 +37,7 @@ args = torch.load(runPath + '/args.rar')
 
 # cuda stuff
 needs_conversion = cmds.no_cuda and args.cuda
-conversion_kwargs = {'map_location': lambda st, loc: st} if needs_conversion else {}
+conversion_kwargs = {'map_location': 'cuda' if needs_conversion else 'cpu'}
 args.cuda = not cmds.no_cuda and torch.cuda.is_available()
 device = torch.device("cuda" if args.cuda else "cpu")
 torch.manual_seed(args.seed)
