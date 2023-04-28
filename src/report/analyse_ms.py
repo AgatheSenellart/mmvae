@@ -37,9 +37,12 @@ args = torch.load(runPath + '/args.rar')
 
 # cuda stuff
 needs_conversion = cmds.no_cuda and args.cuda
-conversion_kwargs = {'map_location': 'cuda' if needs_conversion else 'cpu'}
-args.cuda = not cmds.no_cuda and torch.cuda.is_available()
+conversion_kwargs = {'map_location': 'cpu' if needs_conversion else 'cuda'}
+args.cuda = (not cmds.no_cuda) and torch.cuda.is_available()
 device = torch.device("cuda" if args.cuda else "cpu")
+conversion_kwargs = {'map_location': device}
+print(conversion_kwargs)
+
 torch.manual_seed(args.seed)
 
 modelC = getattr(models, 'VAE_{}'.format(args.model))
@@ -150,14 +153,14 @@ def _maybe_train_or_load_digit_classifier_img(path, epochs):
         torch.save(classifier.state_dict(), path.format(option))
 
     mnist_net, svhn_net = MNIST_Classifier().to(device), SVHN_Classifier().to(device)
-    mnist_net.load_state_dict(torch.load(path.format('mnist')))
-    svhn_net.load_state_dict(torch.load(path.format('svhn')))
+    mnist_net.load_state_dict(torch.load(path.format('mnist'), **conversion_kwargs))
+    svhn_net.load_state_dict(torch.load(path.format('svhn'),**conversion_kwargs))
     return mnist_net, svhn_net
 
 def cross_coherence(epochs):
     model.eval()
 
-    mnist_net, svhn_net = _maybe_train_or_load_digit_classifier_img("../data/{}_model.pt", epochs=epochs)
+    mnist_net, svhn_net = _maybe_train_or_load_digit_classifier_img("data/{}_model.pt", epochs=epochs)
     mnist_net.eval()
     svhn_net.eval()
 
@@ -185,8 +188,8 @@ def cross_coherence(epochs):
 def joint_coherence():
     model.eval()
     mnist_net, svhn_net = MNIST_Classifier().to(device), SVHN_Classifier().to(device)
-    mnist_net.load_state_dict(torch.load('../data/mnist_model.pt'))
-    svhn_net.load_state_dict(torch.load('../data/svhn_model.pt'))
+    mnist_net.load_state_dict(torch.load('data/mnist_model.pt'))
+    svhn_net.load_state_dict(torch.load('data/svhn_model.pt'))
 
     mnist_net.eval()
     svhn_net.eval()
